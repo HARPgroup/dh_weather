@@ -1,0 +1,779 @@
+<?php
+
+//Implement hook_entity_info().
+
+function dh_weather_entity_info() {
+
+  $return['dh_timeseries_weather'] = array(
+    'label' => t('dH TimeSeries Weather'),
+    'entity class' => 'dHTimeSeriesWeatherTable',
+    'controller class' => 'dHTimeSeriesWeatherTableController',
+    'base table' => 'dh_timeseries_weather',
+    'fieldable' => TRUE,
+   //'bundle of' => '',
+    //'exportable' => TRUE,
+    'entity keys' => array (
+       'name' => 'tid',
+        'id' => 'tid',
+        'label' => 'tid',
+    ),
+    'bundles' => array(),
+    'bundle keys' => array( 
+    ),
+    'property info' => array('entity_type', 'featureid', 'tstime', 'tsendtime', 'varid', 'temp', 'wet_time', 'rain', 'rh', 'solar_rad', 'wind_dir', 'wind_spd', 'pres', 'dew_pt', 'tmin', 'tmax'),
+    'access callback' => 'dh_feature_access',
+    'module' => 'dh_weather',
+    // Enable the entity API's admin UI.
+    'admin ui' => array(
+      'path' => 'admin/content/dh_timeseries_weather',
+      'file' => 'dh_weather.admin.inc',
+      'controller class' => 'dHTimeSeriesWeatherTableUIController',
+    ),
+    'view modes' => array(
+      'teaser' => array(
+        'label' => t('Teaser'),
+        'custom settings' =>  FALSE,
+      ),
+      'summary' => array(
+        'label' => t('Summary'),
+        'custom settings' =>  FALSE,
+      ),
+      'full' => array(
+        'label' => t('Full Weather TimeSeries'),
+        'custom settings' =>  FALSE,
+      ),
+      'ical_summary' => array(
+        'label' => t('iCal Summary Field'),
+        'custom settings' =>  FALSE,
+      ),
+    ),
+  );
+  
+  return $return;
+}
+
+
+// Implements hook_entity_property_info_alter().
+function dh_weather_entity_property_info_alter(&$entity_info) {
+
+  $feature_fields = &$entity_info['dh_timeseries_weather']['properties'];
+  $settable_feat = array('entity_type', 'featureid', 'tstime', 'tsendtime', 'varid', 'temp', 'wet_time', 'rain', 'rh', 'solar_rad', 'wind_dir', 'wind_spd', 'pres', 'dew_pt', 'tmin', 'tmax');
+  foreach ($settable_feat as $thiscol) {
+    $feature_fields[$thiscol]['setter callback'] = 'entity_property_verbatim_set';
+    $feature_fields[$thiscol]['getter callback'] = 'entity_property_verbatim_get';
+    $feature_fields[$thiscol]['setter permission'] = 'edit own dh_timeseries entities';
+    //$feature_fields[$thiscol]['type'] = 'user';
+    $feature_fields[$thiscol]['schema field'] = $thiscol;
+    $feature_fields[$thiscol]['label'] = t($thiscol);
+    $feature_fields[$thiscol]['description'] = t($thiscol);
+  }
+}
+ 
+
+// Implements hook_view_data_alter().
+
+function dh_weather_views_data_alter(&$data) {
+
+  // do date setups
+  $defaults_date = array(
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+    ),
+  );
+   $defaults_numeric = array(
+      'title' => t('Numeric Field'),
+      'help' => t('Numeric Field.'), // The help that appears on the UI,
+      'argument' => array(
+         'handler' => 'views_handler_argument_numeric',
+      ),
+      'field' => array(
+         'handler' => 'views_handler_field_numeric',
+         'click sortable' => TRUE,
+			'float' => TRUE, // enables advanced formatting options
+      ),
+      'filter' => array(
+         'handler' => 'views_handler_filter_numeric',
+      ),
+      'sort' => array(
+         'handler' => 'views_handler_sort',
+      )
+   );
+  
+  // join var def to tsdata
+   $data['dh_timeseries_weather']['table']['join']['dh_variabledefinition'] = array(
+     'left_table' => 'dh_variabledefinition',
+     'left_field' => 'hydroid',
+     'field' => 'varid'
+   );
+  
+  // TimeSeries data connections
+  // join tsdata to var def 
+   $data['dh_variabledefinition']['table']['join']['dh_timeseries_weather'] = array(
+     'left_table' => 'dh_timeseries_weather',
+     'left_field' => 'varid',
+     'field' => 'hydroid'
+   );
+  // join tsdata to dH_feature
+   $data['dh_feature']['table']['join']['dh_timeseries_weather'] = array(
+     'left_table' => 'dh_timeseries_weather',
+     'left_field' => 'featureid',
+     'field' => 'hydroid'
+   );
+  // tells variabledefinition that it has a linkage path to dh_feature THRU dh_timeseries 
+   $data['dh_variabledefinition']['table']['join']['dh_feature'] = array(
+     'left_table' => 'dh_timeseries_weather',
+     'left_field' => 'varid',
+     'field' => 'hydroid'
+   );
+  // join dH_feature to TimeSeries
+   $data['dh_timeseries_weather']['table']['join']['dh_feature'] = array(
+     'left_table' => 'dh_feature',
+     'left_field' => 'hydroid',
+     'field' => 'featureid'
+   );
+   
+   $numcols = array('rh', 'temp', 'tmin', 'tmax', 'wet_time', 'rain', 'wind_spd', 'wind_dir', 'solar_rad');
+   $strcols = array();
+   $datecols = array('tstime', 'tsendtime');
+   foreach ($strcols as $thiscol) {
+      $data['dh_timeseries_weather'][$thiscol] = $defaults_string;
+      $data['dh_timeseries_weather'][$thiscol]['title'] = t("Vitis Data $thiscol");
+      $data['dh_timeseries_weather'][$thiscol]['help'] = t("Vitis $thiscol");
+   }
+   foreach ($numcols as $thiscol) {
+      $data['dh_timeseries_weather'][$thiscol] = $defaults_numeric;
+      $data['dh_timeseries_weather'][$thiscol]['title'] = t("Vitis $thiscol");
+      $data['dh_timeseries_weather'][$thiscol]['help'] = t("Vitis $thiscol");
+   }
+   foreach ($datecols as $thiscol) {
+      $data['dh_timeseries_weather'][$thiscol]['field'] = $defaults_date['field'];
+      $data['dh_timeseries_weather'][$thiscol]['sort'] = $defaults_date['sort'];
+      $data['dh_timeseries_weather'][$thiscol]['filter'] = $defaults_date['filter'];
+   }
+   
+   //foreach ($datecols as $thiscol) {
+   //   $data['dh_timeseries_weather'][$thiscol]['filter'] = array('handler' => 'views_handler_filter_date');
+   //}
+  
+  // for explicit joins
+  $e = entity_get_info();
+  foreach ($e as $ename => $einfo) {
+    $ebase = $einfo['base table'];
+    $elabel = $einfo['label'];
+    $eidcol = $einfo['entity keys']['id'];
+    if ($eidcol) {
+      // should go through and add a relationship for all entity types
+      $data[$ebase]['cts_weath_' . $ebase] = array(
+        'real field' => 'adminid',
+        'relationship' => array(
+          'title' => 'dH Weather Timeseries Link to ' . $ebase,
+          'help' => 'dH Weather Timeseries Link to ' . $ebase,
+          'handler' => 'views_handler_relationship',
+          'label' => t('dH Weather Table Explicit Join to ' . $elabel),
+          'base' => 'dh_timeseries_weather',
+          'base field' => 'featureid',
+          'left_table' => $ebase,
+          'field' => $eidcol,
+        )
+      );
+      if (!isset($data[$ebase]['cts_weath_' . $ebase]['relationship']['extra'])) { 
+        $data[$ebase]['cts_weath_' . $ebase]['relationship']['extra'] = array();
+      }
+      $data[$ebase]['cts_weath_' . $ebase]['relationship']['extra'][] = array(
+        'field' => 'entity_type', 
+        'value' => $ename
+      );
+    }
+  }
+  // special filter that uses a select widget
+  // and preserves reverse compatibility
+  $data['dh_timeseries_weather']['varidid'] = array();
+  $data['dh_timeseries_weather']['varidid']['real field'] = 'varid';
+  //$data['dh_timeseries_weather']['varidid']['group'] = $data['dh_timeseries_weather']['varid']['group'];
+  $data['dh_timeseries_weather']['varidid']['title'] = $data['dh_timeseries_weather']['varid']['title'] . " (selector)";
+  $data['dh_timeseries_weather']['varidid']['help'] = $data['dh_timeseries_weather']['varid']['title'] . " (selector)";
+  $data['dh_timeseries_weather']['varidid']['filter'] = array(
+    'label' => "TS Variable Name/Key (selector)",
+    //'handler' => 'dh_views_handler_filter_in_operator_on',
+    'handler' => 'views_handler_filter_dh_propvarkey',
+    'options callback' => 'dh_vardef_varselect_options',
+  );
+  
+}
+
+function dh_weather_noaa_grid_geometry(){
+  // creates a special geometry polygon for use in raster clipping
+  // based on the bundle/ftype weather_sensor/
+  $pieces = dh_get_flow_links($dh_feature->hydroid, $etype = 'dh_feature');
+  $pt_list = implode(',',$pieces);
+  $finfo = field_info_field('dh_geofield');
+  $srid = $finfo['settings']['srid'];
+  // find the coverage to store data without
+  $q = "  select hydroid ";
+  $q .= " from dh_feature ";
+  $q .= " where bundle = 'landunit' ";
+  $q .= " and hydrocode = 'vahydro_nws_precip_grid' ";
+  dsm($q);
+  $rez = db_query($q);
+  $cover_props = $rez->fetchAssoc();
+  dpm($cover_props);
+  $cover_props += array('name' => 'VAHydro NOAA Sensor Coverage', 'hydrocode'=>'vahydro_nws_precip_grid', 'bundle'=>'landunit', 'ftype' => 'nws_precip_grid');
+  if (!$cover_props['hydroid']) {
+    $cover_obj = entity_create('dh_feature', $cover_props);
+  } else {
+    $cover_obj = entity_load_single('dh_feature', $cover_props['hydroid']);
+  }
+  // make its box cover all existing weather sensor points
+  $q = "  select ST_AsText(";
+  $q .= "   st_makepolygon(";
+  $q .= "     st_exteriorring(";
+  $q .= "       st_envelope(";
+  $q .= "         st_extent(dh_geofield_geom)";
+  $q .= "       )";
+  $q .= "     )";
+  $q .= "   )";
+  $q .= " ) as conv_geom, ";
+  $q .= " ST_IsValid(";
+  $q .= "   st_makepolygon(";
+  $q .= "     st_exteriorring(";
+  $q .= "       st_envelope(";
+  $q .= "         st_extent(dh_geofield_geom)";
+  $q .= "       )";
+  $q .= "     )";
+  $q .= "   )";
+  $q .= " ) as geom_status ";
+  $q .= " from field_data_dh_geofield ";
+  $q .= " where bundle = 'weather_sensor' ";
+  $q .= " and ftype = 'nws_precip' ";
+  //dsm($q);
+  $rez = db_query($q);
+  $rez_obj = $rez->fetchObject();
+  $wkt = $rez_obj->conv_geom;
+  $valid = $rez_obj->geom_status;
+  dpm($rez_obj,'rez_obj');
+  return;
+  if ($valid) {
+    $efq = new EntityFieldQuery(); 
+    $efq->entityCondition('entity_type', 'dh_feature');
+    $efq->propertyCondition('bundle', 'conveyance');
+    $efq->propertyCondition('hydroid', $pieces, 'IN');
+    $rez = $efq->execute();
+    if (isset($rez['dh_feature'])) {
+      $rez = array_shift($rez['dh_feature']);
+      $entity_id = $rez->hydroid;
+    }
+    $conv = entity_load_single('dh_feature', $entity_id);
+    if (is_object($conv)) {
+      $conv->dh_geofield = array(
+        LANGUAGE_NONE => array(
+          0 => array(
+            'input_format' => GEOFIELD_INPUT_WKT, 
+            'geom' => $wkt,
+          ),
+        )
+      );
+      //dpm($conv,'after setting geom');
+      $conv->save();
+    } else {
+      watchdog('dh', "Problem trying to load dh_feature $entity_id");
+    }
+  } else {
+    watchdog('dh', "Conveyance Query SQL returned invalid or empty geometry: $q ");
+  }
+}
+
+class dHTimeSeriesWeatherTable extends Entity {
+
+  public $is_new;
+  public $tid;
+  public $tstime;
+  public $utcoffset;
+  public $temp;
+  public $tmin;
+  public $tmax;
+  public $wet_time;
+  public $rh;
+  public $rain;
+  public $wind_spd;
+  public $wind_dir;
+  public $tsendtime;
+  public $pres;
+  public $dew_pt;
+  public $solar_rad;
+  public $featureid;
+  public $varid;
+	public $entity_type;
+
+  public function __construct($values = array()) {
+    if (isset($values['year']) or isset($values['month']) or isset($values['day'])) {
+      if (isset($values['month'])) {
+        $yr = $values['year'];
+      } else {
+        $yr = date('Y');
+      }
+      if (isset($values['month'])) {
+        $mo = $values['month'];
+      } else {
+        $mo = '01';
+      }
+      if (isset($values['day'])) {
+        $da = $values['day'];
+      } else {
+        $da = '01';
+      }
+      $newts = strtotime("$yr-$mo-$da");
+      if (!($newts === false)) {
+        $values['tstime'] = $newts;
+      }
+    }
+    foreach (array('tstime', 'tsendtime') as $tvar) {
+      if (isset($values[$tvar])) {
+        // if a valid unix epoch style timestamp has been submitted 
+        // this next comparator will return TRUE
+        if (!( !is_int($values[$tvar]) ? (ctype_digit($values[$tvar])) : true ) ) {
+          // not a valid unix timestamp, so try to convert from some date format
+          $values[$tvar] = strtotime($values[$tvar]);
+        } else {
+          // valid unix timestamp submitted, proceed without changing
+        }
+      }
+    }
+    parent::__construct($values, 'dh_timeseries_weather');
+  }
+  protected function defaultLabel() {
+    return $this->varid;
+  }
+  
+  protected function setUp() {
+    parent::setUp();
+    if (!empty($this->varid)) {
+      // get the varkey for this
+      $var = dh_vardef_info(intval($this->varid));
+      if (is_object($var)) {
+        $this->varkey = $var->varkey;
+        $this->varname = $var->varname;
+        $this->varcode = $var->varcode;
+        $this->vardesc = $var->vardesc;
+        $this->varunits = $var->varunits;
+      }
+    }
+  }
+}
+
+
+class dHTimeSeriesWeatherTableController extends EntityAPIControllerExportable {
+
+  public function __construct($entityType) {
+    parent::__construct($entityType);
+  }
+
+  public function create(array $values = array()) {
+    // Add values that are specific to our Model
+    $values += array( 
+      'tid' => '',
+      'tstime' => '',
+      'utcoffset' => '',
+      'temp' => '',
+      'tmin' => '',
+      'tmax' => '',
+      'wet_time' => '',
+      'rh' => '',
+      'rain' => '',
+      'wind_spd' => '',
+      'wind_dir' => '',
+      'solar_rad' => '',
+      'tsendtime' => '',
+      'pres' => '',
+      'dew_pt' => '',
+      'featureid' => '',
+      'entity_type' => '',
+      'varid' => ''
+    );
+    $entity = parent::create($values);
+    $plugins = dh_variables_getPlugins($entity);
+    if (!is_array($plugins)) {
+      $plugins = array($plugins);
+    }
+    foreach ($plugins as $plug) {
+      if (method_exists($plug, 'create')) {
+        $plug->create($entity);
+      }
+    }
+    return $entity;
+  }
+  public function save($entity, DatabaseTransaction $transaction = NULL) {
+    $plugins = dh_variables_getPlugins($entity);
+    if (!is_array($plugins)) {
+      $plugins = array($plugins);
+    }
+    //dpm($entity,'saving entity');
+    //dpm($plugins,'plugins');
+    foreach ($plugins as $plug) {
+      if (method_exists($plug, 'save')) {
+        //dpm($plug, "calling plugin save()");
+        $plug->save($entity);
+      }
+    }
+    $timecols = array('tstime', 'tsendtime');
+    foreach ($timecols as $thiscol) {
+      if (property_exists($entity, $thiscol)) {
+        $entity->$thiscol = dh_handletimestamp($entity->$thiscol);
+      }
+    }
+    // check to see if varid is text, if so, do an EFQ on varkey field
+    if (!is_numeric($entity->varid)) {
+      $valid = FALSE;
+      $entity->varid = dh_varkey2varid($entity->varid);
+      if (!$entity->varid) {
+        // @todo: throw exception
+        $entity->varid = 0;
+      }
+    }
+    return parent::save($entity, $transaction);
+  }
+  public function invoke($hook, $entity) {
+    parent::invoke($hook, $entity);
+    $plugins = dh_variables_getPlugins($entity);
+    if (!is_array($plugins)) {
+      $plugins = array($plugins);
+    }
+    foreach ($plugins as $plug) {
+      switch ($hook) {
+        case 'insert':
+        if (method_exists($plug, 'insert')) {
+          $plug->insert($entity);
+        }
+        break;
+        case 'update':
+        if (method_exists($plug, 'update')) {
+          $plug->update($entity);
+        }
+        break;
+      }
+    }
+  }
+  
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $content = parent::buildContent($entity, $view_mode, $langcode, $content);
+    // set up basic view modes
+    // then handle all plugins to override defaults 
+    switch ($view_mode) {
+      case 'teaser':
+      case 'summary':
+        $content['varname'] = array(
+          '#type' => 'item',
+          '#title' => t('Type'),
+          '#markup' => $entity->varname,
+        );
+        $content['tstime'] = array(
+          '#type' => 'item',
+          '#title' => t('Start Time'),
+          '#markup' => format_date($entity->tstime),
+        );
+        $content['tsendtime'] = array(
+          '#type' => 'item',
+          '#title' => t('End Time'),
+          '#markup' => format_date($entity->tstime),
+        );
+        $content['rain'] = array(
+          '#type' => 'item',
+          '#title' => t('Rain'),
+          '#markup' => $entity->rain,
+        );
+        $content['rh'] = array(
+          '#type' => 'item',
+          '#title' => t('RH'),
+          '#markup' => $entity->rh,
+        );
+        $content['tmin'] = array(
+          '#type' => 'item',
+          '#title' => t('Tmin'),
+          '#markup' => $entity->tmin,
+        );
+        $content['tmax'] = array(
+          '#type' => 'item',
+          '#title' => t('Tmax'),
+          '#markup' => $entity->tmax,
+        );
+        $content['wet_time'] = array(
+          '#type' => 'item',
+          '#title' => t('Wet Time'),
+          '#markup' => $entity->wet_time,
+        );
+      break;
+      case 'raw':
+        $content['varname'] = array(
+          '#type' => 'item',
+          '#title' => t('Type'),
+          '#markup' => $entity->varname,
+        );
+        $content['tstime'] = array(
+          '#type' => 'item',
+          '#title' => t('Start Time'),
+          '#markup' => format_date($entity->tstime),
+        );
+        $content['tsendtime'] = array(
+          '#type' => 'item',
+          '#title' => t('End Time'),
+          '#markup' => format_date($entity->tstime),
+        );
+        $content['rain'] = array(
+          '#type' => 'item',
+          '#title' => t('Rain'),
+          '#markup' => $entity->rain,
+        );
+        $content['rh'] = array(
+          '#type' => 'item',
+          '#title' => t('RH'),
+          '#markup' => $entity->rh,
+        );
+        $content['tmin'] = array(
+          '#type' => 'item',
+          '#title' => t('Tmin'),
+          '#markup' => $entity->tmin,
+        );
+        $content['tmax'] = array(
+          '#type' => 'item',
+          '#title' => t('Tmax'),
+          '#markup' => $entity->tmax,
+        );
+        $content['wet_time'] = array(
+          '#type' => 'item',
+          '#title' => t('Wet Time'),
+          '#markup' => $entity->wet_time,
+        );
+      break;
+      case 'full':
+      // @todo: plugin mode should be deprecated since it should apply everywhere unless we call for raw 
+      case 'plugin':
+      default:
+        $content['varname'] = array(
+          '#type' => 'item',
+          '#title' => t('Type'),
+          '#markup' => $entity->varname,
+        );
+        $content['tstime'] = array(
+          '#type' => 'item',
+          '#title' => t('Start Time'),
+          '#markup' => format_date($entity->tstime),
+        );
+        $content['tsendtime'] = array(
+          '#type' => 'item',
+          '#title' => t('End Time'),
+          '#markup' => format_date($entity->tstime),
+        );
+        $content['rain'] = array(
+          '#type' => 'item',
+          '#title' => t('Rain'),
+          '#markup' => $entity->rain,
+        );
+        $content['rh'] = array(
+          '#type' => 'item',
+          '#title' => t('RH'),
+          '#markup' => $entity->rh,
+        );
+        $content['tmin'] = array(
+          '#type' => 'item',
+          '#title' => t('Tmin'),
+          '#markup' => $entity->tmin,
+        );
+        $content['tmax'] = array(
+          '#type' => 'item',
+          '#title' => t('Tmax'),
+          '#markup' => $entity->tmax,
+        );
+        $content['wet_time'] = array(
+          '#type' => 'item',
+          '#title' => t('Wet Time'),
+          '#markup' => $entity->wet_time,
+        );
+      break;
+    }
+    if ($view_mode <> 'raw') {
+      $plugins = dh_variables_getPlugins($entity);
+      if (!is_array($plugins)) {
+        $plugins = array($plugins);
+      }
+      foreach ($plugins as $plug) {
+        if (method_exists($plug, 'buildContent')) {
+          $plug->buildContent($content, $entity, $view_mode);
+        }
+      }
+    }
+    return $content;
+  }
+}
+
+// Helper functions
+
+function dh_get_timeseries_weather(&$values, $multiplicity) {
+  // ***********************************************************
+  // * Do translations
+  //   * make sure the variable is in place and translated to varid
+  //   * Translate tstime and tsendtime to seconds since the epoch
+  // ***********************************************************
+  if (isset($values['tstime'])) {
+    $values['tstime'] = dh_handletimestamp($values['tstime']);
+  }
+  if (isset($values['tsendtime'])) {
+    $values['tsendtime'] = dh_handletimestamp($values['tsendtime']);
+  }
+  // make sure the variable is in place and translated to varid
+  if (isset($values['varid'])) {
+    $var = dh_vardef_info($values['varid']);
+    //dpm($var, "result from dh_vardef_info(" . $values['varid'] . ")");
+    if (is_object($var)) {
+      $values['varid'] = $var->hydroid;
+    }
+  }
+  //dpm($values, "dh_get_timeseries_weather(values, $multiplicity)");
+  $efq = new EntityFieldQuery;
+  $efq->entityCondition('entity_type', 'dh_timeseries_weather');
+  $efq->propertyCondition('featureid', $values['featureid'], '=');
+  if (!($multiplicity == 'all')) {
+    // if 'all' is request we ignore varid, otherwise we want a specific var
+    //dpm($values['varid'],'adding varid to efq');
+    $efq->propertyCondition('varid', $values['varid'], '=');
+  }
+  $efq->propertyCondition('entity_type', $values['entity_type'], '=');
+  // singular - one record only for featureid/entity_type/varid - clear all if multiple
+  //   ex: a birthdate
+  // non_singular - just force an insert regardless of duplication
+  // tstime_singular - one record for featureid/entity_type/varid/tstime/tsendtime
+  switch ($multiplicity) {
+    case 'all':
+    // returning all
+    break;
+    
+    case 'singular':
+    // expects only 1 value, but essentially returns all values
+    break;
+    
+    case 'non_singular':
+    // returns any values for this featureid/entity_type
+    break;
+    
+    case 'tstime_singular':
+      $efq->propertyCondition('tstime', $values['tstime'], '=');
+    break;
+    
+    case 'tstime_date_singular':
+      // round to a single day start and end regardless of what the timne frames are
+      // this will guarantee that only 1 entry for each day occurs
+      $start = DateTime::createFromFormat('Y-m-d', date('Y-m-d', $values['tstime']));
+      $end = $start;
+      $end->modify('+1 day');
+      //$nextday = date
+      // take it back to the day beginning
+      $stime = dh_handletimestamp(date('Y-m-d', $values['tstime']));
+      $efq->propertyCondition('tstime', $stime, '>=');
+      // some leap days may have 86399 seconds in them, but we will accept that potential error as it will be only
+      // 1 second of data if we ever collect data at 1 seconds resolution
+      $efq->propertyCondition('tstime', $stime + 86400, '<');
+    break;
+    
+    case 'tstime_enddate_singular':
+      // round to a single day start and end regardless of what the timne frames are
+      // this will guarantee that only 1 entry for each day occurs
+      // take it back to the day beginning
+      $etime = dh_handletimestamp(date('Y-m-d', $values['tsendtime']));
+      $efq->propertyCondition('tsendtime', $etime, '>');
+      // some leap days may have 86399 seconds in them, but we will accept that potential error as it will be only
+      // 1 second of data if we ever collect data at 1 seconds resolution
+      $efq->propertyCondition('tsendtime', $etime + 86400, '<=');
+    break;
+    
+    case 'tspan_singular':
+      $efq->propertyCondition('tstime', $values['tstime'], '=');
+      $efq->propertyCondition('tsendtime', $values['tsendtime'], '=');
+    break;
+    
+    default:
+      $efq->propertyCondition('tstime', $values['tstime'], '=');
+    break;
+  }
+  //dpm($efq,'get weather');
+  $result = $efq->execute();
+  return $result;
+}
+
+
+function dh_update_timeseries_weather($values, $multiplicity = 'tstime_singular') {  
+  // must have timestamp, featureid and entity_type
+  $notnull = array('featureid', 'entity_type', 'tstime', 'varid');
+  foreach ($notnull as $v) {
+    if (!isset($values[$v]) or ($values[$v] === NULL)) {
+      watchdog('dh_timeseries_weather', "NULL value for dh_timeseries_weather $v");
+      return FALSE;
+    }
+  }
+  $result = dh_get_timeseries_weather($values, $multiplicity);
+  if (isset($result['dh_timeseries_weather'])) {
+    //dpm($result,"found records - checking singularity settings");
+    $data = entity_load('dh_timeseries_weather', array_keys($result['dh_timeseries_weather']));
+    $record = array_shift($data);
+    if (!(strpos($multiplicity, 'singular') === FALSE)) {
+      // we need to grab one and delete the others because this is to be singular
+      // otherwise, we just take the first one we come to and ignore the rest
+      foreach ($data as $todel) {
+        entity_delete('dh_timeseries_weather', $todel->tid);
+      }
+    }
+    foreach ($values as $key => $val) {
+      $record->$key = $val;
+    }
+  } else {
+    //dpm($values,"creating ts");
+    //error_log("creating ts" . print_r($values,1));
+    $record = entity_create('dh_timeseries_weather', $values);
+  }
+  if (is_object($record) and method_exists($record, 'save')) {
+    //dpm($record, "updating");
+    $record->save();
+    return $record->tid;
+  } else {
+    //dpm($record,"record is not object or save() method does not exist");
+    return FALSE;
+  }
+}
+
+class DHDefaultWeatherSource {
+  function importWeatherFeatures($config = array()) {
+    // defines method to connect to a remote service to get features 
+    // that will later have weather data attached to them
+  }
+  function importWeatherTSData($date, $filters) {
+    // defines method to connect to a remote service to 
+    // atach weather data to features that have already been retreived
+    // may be used to call importWeatherFeatures
+  }
+}
+
+
+function dh_weather_ctools_plugin_type() {
+  // this is a test, as it may move to the base dh module.
+  return array(
+    'dh_weather_data_sources' => array(
+      'classes' => array('handler'),
+    ),
+  );
+}
+
+function dh_weather_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'ctools' && $plugin_type == 'dh_weather_data_sources') {
+    return 'plugins/' . $plugin_type;
+  }
+  if ($owner == 'om' && $plugin_type == 'om_components') {
+    return 'plugins/' . $plugin_type;
+  }
+  if ($owner == 'dh' && $plugin_type == 'dh_variables') {
+    return 'plugins/' . $plugin_type;
+  }
+}
