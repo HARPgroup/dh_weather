@@ -139,7 +139,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
     'varid' => -1000,
   );
   //  validate the new data set
-  $valid = dh_weather_validate_nws_raster('tmp_precipgrid', 'rast', 2);
+  $valid = dh_weather_validate_nws_raster('tmp_precipgrid', 'rast', 2, $qa_config['nodata_val']);
 
   return TRUE;
 /*
