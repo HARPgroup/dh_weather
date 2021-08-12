@@ -141,7 +141,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   //  validate the new data set
   $valid = dh_weather_validate_nws_raster('tmp_precipgrid', 'rast', 2, $qa_config['nodata_val']);
 
-  return TRUE;
+  return $valid;
 /*
    if ($debug) { print("Downloading $fileURL.<br>"); }
    $imgdata = imagecreatefromgif ( $fileURL );
@@ -209,7 +209,9 @@ function dh_weather_grid_summary($config, $overwrite, $single, $debug) {
   $q .="  ";
   error_log($q);
   db_query($q);
-  
+  // NOAA raster has multiple bands relating to the cumulative values 
+  // this first summary is the "water year to date" raster, which is convenient 
+  // since it has the cumulative values all baked into it.  This avoids issues with bad data which sometimes happens.
   $q = " insert into dh_timeseries_weather (entity_type, featureid, varid, tstime, tsendtime, rain) ";
   $q .=" select 'dh_feature', foo.hydroid, var.hydroid as varid, $ts, $tsend, ";
   $q .="   CASE ";
