@@ -58,8 +58,8 @@ $config = array(
 $dates = array();
 if (!$single) {
   $thistime = strtotime($date);
-  $config['tstime_op'] = $thistime;
-  $config['tstime'] = 'gte';
+  $config['tstime'] = $thistime;
+  $config['tstime_op'] = 'gte';
   $last_time = dh_timeseries_weather_most_recent($config, $debug);
   error_log("Last data time: $last_time " .date('Y-m-d', $last_time) );
   if (!$last_time) {
