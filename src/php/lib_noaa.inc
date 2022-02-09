@@ -69,12 +69,12 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   error_log("raster2pgsql \"$file_path.conus-4326.tif\" tmp_precipgrid > $sql_path ");
   shell_exec("raster2pgsql \"$file_path.conus-4326.tif\" tmp_precipgrid > $sql_path ");
   $q = "drop table tmp_precipgrid";
-  error_log("echo \"drop table tmp_precipgrid\" | psql -h dbase2 $config[dbname] -U $config[username] ");
-  shell_exec("echo \"drop table tmp_precipgrid\" | psql -h dbase2 $config[dbname] -U $config[username] ");
-  error_log("cat $sql_path | psql -h dbase2 $config[dbname] -U $config[username] ");
-  shell_exec("cat $sql_path | psql -h dbase2 $config[dbname] -U $config[username] ");
-  error_log("echo \"grant all on table tmp_precipgrid to drupal\" | psql -h dbase2 $config[dbname] -U $config[username] ");
-  shell_exec("echo \"grant all on table tmp_precipgrid to drupal\" | psql -h dbase2 $config[dbname] -U $config[username] ");
+  error_log("echo \"drop table tmp_precipgrid\" | psql -h $config[dbname] -U $config[username] ");
+  shell_exec("echo \"drop table tmp_precipgrid\" | psql -h $config[dbname] -U $config[username] ");
+  error_log("cat $sql_path | psql -h $config[dbname] -U $config[username] ");
+  shell_exec("cat $sql_path | psql -h $config[dbname] -U $config[username] ");
+  error_log("echo \"grant all on table tmp_precipgrid to drupal\" | psql -h $config[dbname] -U $config[username] ");
+  shell_exec("echo \"grant all on table tmp_precipgrid to drupal\" | psql -h $config[dbname] -U $config[username] ");
   
   // handle the dates
   $date_ts = dh_handletimestamp($config['date']); // timestamp of sdate param

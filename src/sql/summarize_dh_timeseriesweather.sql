@@ -105,9 +105,12 @@ select varkey, to_timestamp(tstime), (stats).* from (
 
 
 
--- do a whole water year
-select varkey, to_timestamp(tsendtime), to_timestamp(tstime), (stats).* from (
-  select b.varkey, a.tstime, a.tsendtime, st_summarystats(rast, 2, TRUE) as stats
+-- do a whole water year for whole coverage
+select varkey, to_timestamp(tsendtime), to_timestamp(tstime), obs, nml, (obs - nml) as diff_inches
+from (
+  select b.varkey, a.tstime, a.tsendtime, 
+  (st_summarystats(rast, 1, TRUE)).mean as obs,
+  (st_summarystats(rast, 2, TRUE)).mean as nml
   from dh_timeseries_weather as a 
   left outer join dh_variabledefinition as b 
   on (a.varid = b.hydroid)
