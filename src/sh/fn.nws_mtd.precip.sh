@@ -159,7 +159,7 @@ from (
   )
   where a.bundle = 'weather_sensor'
     -- uncomment to do a single one, comment it and all will be returned
-    --and a.hydrocode = '1014-526' 
+    and a.hydrocode = '952-491' 
     --and c.rid = 2 
     and c.featureid in (select hydroid from dh_feature where hydrocode = 'vahydro_nws_precip_grid'  and bundle = 'landunit'  and ftype = 'nws_precip_grid')
     and c.entity_type = 'dh_feature'
