@@ -59,7 +59,8 @@ $dates = array();
 if (!$single) {
   $thistime = strtotime($date);
   $config['tstime'] = $thistime;
-  $config['tstime_op'] = 'gte';
+  // we need to start with the last valid date before the requested date and then try to catch up
+  $config['tstime_op'] = 'lte';
   $last_time = dh_timeseries_weather_most_recent($config, $debug);
   error_log("Last data time: $last_time " .date('Y-m-d', $last_time) );
   if (!$last_time) {
