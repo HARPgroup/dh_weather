@@ -77,6 +77,8 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   $q = "drop table tmp_precipgrid";
   // ************************************************************************
   // clear the old raster table, tmp_precipgrid 
+  // - Ask yourself a question, what possible problemscould arise from using a single name for 
+  //   a daily recurring table download? 
   // ************************************************************************
   error_log("echo \"drop table tmp_precipgrid\" | psql -h $config[host] $config[dbname] -U $config[username] ");
   shell_exec("echo \"drop table tmp_precipgrid\" | psql -h $config[host] $config[dbname] -U $config[username] ");
