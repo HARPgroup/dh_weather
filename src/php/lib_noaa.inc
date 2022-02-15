@@ -28,6 +28,9 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   $fil="$dataset$yr$mo$da$ext";
   $varkey = $config['varkey'];
   $file_path = $config['scratchdir'] . '/' . $fil;
+  // ************************************************************************
+  // create the path name for the file that will hold the SQL importable grid
+  // ************************************************************************
   $sql_path = $config['scratchdir'] . '/' . 'tmp_precipgrid.sql';
   $url="http://water.weather.gov/precip/downloads/$yr/$mo/$da/$fil";
   // download the file
@@ -64,14 +67,22 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
     echo "Could not download $url ...\n";
     return FALSE;
   }
-  // process the file and import into a temp table
+  // ************************************************************************
+  // Reproject the file and import into a scratch table
+  // ************************************************************************
   error_log("gdalwarp $file_path -t_srs EPSG:4326 \"$file_path.conus-4326.tif\"");
   shell_exec("gdalwarp $file_path -t_srs EPSG:4326 \"$file_path.conus-4326.tif\"");
   error_log("raster2pgsql \"$file_path.conus-4326.tif\" tmp_precipgrid > $sql_path ");
   shell_exec("raster2pgsql \"$file_path.conus-4326.tif\" tmp_precipgrid > $sql_path ");
   $q = "drop table tmp_precipgrid";
+  // ************************************************************************
+  // clear the old raster table, tmp_precipgrid 
+  // ************************************************************************
   error_log("echo \"drop table tmp_precipgrid\" | psql -h $config[host] $config[dbname] -U $config[username] ");
   shell_exec("echo \"drop table tmp_precipgrid\" | psql -h $config[host] $config[dbname] -U $config[username] ");
+  // ************************************************************************
+  // populate the tmp_precipgrid file and set read permissions 
+  // ************************************************************************
   error_log("cat $sql_path | psql -h $config[host] $config[dbname] -U $config[username] ");
   shell_exec("cat $sql_path | psql -h $config[host] $config[dbname] -U $config[username] ");
   error_log("echo \"grant all on table tmp_precipgrid to drupal\" | psql -h $config[host] $config[dbname] -U $config[username] ");
@@ -95,6 +106,11 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
       $ts = $date_ts; // 
     break;
   }
+  
+  // ************************************************************************
+  // create a timeseries record of the summary
+  // ************************************************************************
+  // create an empty record that we can later append the raster to 
   $values = array(
     'featureid' => $extent_hydroid,
     'entity_type' => 'dh_feature',
@@ -102,7 +118,6 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
     'tsendtime' => $tsend, 
     'varid' => $varkey
   );
-  // create a record of the summary
   $tid = dh_update_timeseries_weather($values, 'tspan_singular');
   error_log("Inserted weather record $tid for " . print_r($values,1));
   // insert a clipped copy of the raster into the dh_timeseries_weather table
@@ -129,7 +144,10 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   $q .=" where tid = $tid ";
   error_log($q);
   db_query($q);
+  
+  // ************************************************************************
   // now verify if this is a good one.  If not, clear it
+  // ************************************************************************
   $qa_config = array(
     'band' => 1, 
     'stat' => 'min', 
@@ -154,6 +172,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
 
 function dh_weather_validate_nws_raster($table, $raster_col, $data_col, $nodata_val) {
   $q = "select st_summarystats($raster_col) from $table ";
+  error_log($q);
   $stats = db_query($q)->fetchField();
   if (!$stats) {
     return FALSE;
