@@ -1,6 +1,8 @@
 -- SQL feature summaries from NOAA raster in dh_timeseries_weather
 -- monthly summary 
 \set target_id 256846
+\set sdate '2021-10-01'
+\set edate '2022-02-09'
 select hydroid, name, mo, max(nml) as max_nml_precip_in, sum(obs) as obs, sum(nml) as nml_precip_in 
 from (
   select a.hydroid, a.name, 
@@ -36,8 +38,8 @@ from (
     and (ST_summarystats(st_clip(c.rast, b.dh_geofield_geom), 2, TRUE)).min >= 0
   -- test single raster date for 2018-11-07
   --  and c.tid = 29352595 
-    and c.tstime >= extract(epoch from '2020-10-01'::timestamp)
-    and c.tstime <= extract(epoch from '2021-09-30'::timestamp)
+    and c.tstime >= extract(epoch from :'sdate'::timestamp)
+    and c.tstime <= extract(epoch from :'edate'::timestamp)
   order by c.tstime
 ) as foo 
 group by hydroid, name, mo
@@ -82,8 +84,8 @@ from (
     and (ST_summarystats(st_clip(c.rast, b.dh_geofield_geom), 2, TRUE)).min >= 0
   -- test single raster date for 2018-11-07
   --  and c.tid = 29352595 
-    and c.tstime >= extract(epoch from '2021-08-01'::timestamp)
-    and c.tstime <= extract(epoch from '2021-09-30'::timestamp)
+    and c.tstime >= extract(epoch from :'sdate'::timestamp)
+    and c.tstime <= extract(epoch from :'edate'::timestamp)
   order by c.tstime
 ) as foo 
 order by hydroid, observed_date, mo
@@ -106,9 +108,12 @@ select varkey, to_timestamp(tstime), (stats).* from (
 
 
 
--- do a whole water year
-select varkey, to_timestamp(tsendtime), to_timestamp(tstime), (stats).* from (
-  select b.varkey, a.tstime, a.tsendtime, st_summarystats(rast, 2, TRUE) as stats
+-- do a whole water year for whole coverage
+select varkey, to_timestamp(tsendtime), to_timestamp(tstime), obs, nml, (obs - nml) as diff_inches
+from (
+  select b.varkey, a.tstime, a.tsendtime, 
+  (st_summarystats(rast, 1, TRUE)).mean as obs,
+  (st_summarystats(rast, 2, TRUE)).mean as nml
   from dh_timeseries_weather as a 
   left outer join dh_variabledefinition as b 
   on (a.varid = b.hydroid)
