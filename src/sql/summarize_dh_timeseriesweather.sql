@@ -63,7 +63,8 @@ from (
     )
     left outer join dh_timeseries_weather as c 
     on ( 
-      c.varid in (select hydroid from dh_variabledefinition where varkey = 'noaa_precip_raster' ) 
+      c.varid in (select hydroid from dh_variabledefinition where varkey = 'precip_obs_wy2date' ) 
+      --c.varid in (select hydroid from dh_variabledefinition where varkey = 'noaa_precip_raster' ) 
     )
     -- do for NOVA and Shenandoah drought regions
     -- Point of Rocks region is 437177 for testing
@@ -81,7 +82,7 @@ from (
     and (ST_summarystats(st_clip(c.rast, b.dh_geofield_geom), 2, TRUE)).min >= 0
   -- test single raster date for 2018-11-07
   --  and c.tid = 29352595 
-    and c.tstime >= extract(epoch from '2020-10-01'::timestamp)
+    and c.tstime >= extract(epoch from '2021-08-01'::timestamp)
     and c.tstime <= extract(epoch from '2021-09-30'::timestamp)
   order by c.tstime
 ) as foo 
