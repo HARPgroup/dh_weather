@@ -67,18 +67,44 @@ for (r in raw_data) {
     rbd <- rbind(rbd, as.data.frame(thisrec))
   }
 }
+rbdnb <- sqldf::sqldf(
+  "
+    select a.featureid, a.tstime, 'weather_obs' as varkey, 
+      a.tsvalue as tempr, 
+      wet.tsvalue as wet, 
+      dpt.tsvalue as dpt, 
+      wind.tsvalue as wind, 
+      rain.tsvalue as rain, 
+      rad.tsvalue as rad
+    from rbd as a 
+    left outer join rbd as wet 
+    on (
+      a.tstime = wet.tstime
+      and wet.varkey = 'Wetness'
+    )
+    left outer join rbd as wind 
+    on (
+      a.tstime = wind.tstime
+      and wind.varkey = 'Wind Speed'
+    )
+    left outer join rbd as dpt 
+    on (
+      a.tstime = dpt.tstime
+      and dpt.varkey = 'Dew Point'
+    )
+    left outer join rbd as rain 
+    on (
+      a.tstime = rain.tstime
+      and rain.varkey = 'Rain'
+    )
+    left outer join rbd as rad 
+    on (
+      a.tstime = rad.tstime
+      and rad.varkey = 'Solar Radiation'
+    )
+    where a.varkey = 'Temperature'
 
-hobo_rest <- httr::VERB(
-  "GET",
-  url = get_url,
-  config = list(token = access_token),
-  #  httr::add_headers("Authorization" = access_token),
-  #  httr::add_headers("X-Auth-Token" = access_token),
-  encode = "json",
-  #  httr::content_type("application/x-www-form-urlencoded"),
-  body = inputs,
-  httr::verbose()
-  
-);
-hobo_rest
-httr::content(hobo_rest)
+  "
+)
+
+rbdnb
