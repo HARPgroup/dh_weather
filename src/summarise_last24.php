@@ -6,16 +6,15 @@ $args = array();
 while ($arg = drush_shift()) {
   $args[] = $arg;
 }
-$use_msg = "Usage: php set_timeseries_weather.php query_type entity_type featureid varkey propname propvalue propcode [extras as urlenc key1=val1&key2=val2...] ";
+$use_msg = "Usage: php summarise_last24.php entity_type featureid ";
 error_log("Doing last 24 hour summary");
-if (count($args) < 3) {
+if (count($args) < 2) {
   error_log($use_msg);
   die;
 }
 error_log("Args:" . print_r($args,1));
-$qtype = $args[0];
+$entity_type = $args[0];
 $featureid = $args[1];
-$entity_type = $args[2];
 
 $values = array(
   'featureid' => $featureid,
