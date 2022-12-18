@@ -50,6 +50,7 @@ if ($query_type == 'cmd') {
   error_log("Record 1: " . print_r($data[0],1));
 }
 
+# record sensors 
 foreach ($data as $element) {
 
   error_log(print_r($element,1));
