@@ -161,7 +161,7 @@ db_hr <- sqldf::sqldf(
 )
 db_hr$tstime <- paste0(
   db_hr$year,"/",db_hr$month, "/", db_hr$day,
-  " ", db_hr$hour, "00:00"
+  " ", db_hr$hour, ":00:00"
 )
 
 write.table(db_hr, outfile, row.names=FALSE, sep='\t')
