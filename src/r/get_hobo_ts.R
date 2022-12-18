@@ -5,6 +5,7 @@ library("rjson")
 argst <- commandArgs(trailingOnly=T)
 if (is.na(argst[1])) {
   message("Use: Rscript get_hobo_ts.R featureid entity_type hobo_userid hobo_logger start_date end_date outfile")
+  q(FALSE)
 }
 f_id <- as.integer(argst[1])
 e_type <- argst[2]
