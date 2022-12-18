@@ -138,10 +138,10 @@ rbdnb <- sqldf::sqldf(
 
 
 origin <- "1970-01-01"
-rbdnb$hour <- format(as.POSIXct(rbdnb$tstime), "%H")
-rbdnb$day <- format(as.POSIXct(rbdnb$tstime), "%d")
-rbdnb$month <- format(as.POSIXct(rbdnb$tstime), "%m")
-rbdnb$year <- format(as.POSIXct(rbdnb$tstime), "%Y")
+rbdnb$hour <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%H")
+rbdnb$day <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%d")
+rbdnb$month <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%m")
+rbdnb$year <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%Y")
 
 # transform to hourly to save space and 
 # also t oconvert wet_pct to wet_duration
@@ -165,6 +165,9 @@ db_hr$tstime <- paste0(
   db_hr$year,"-",db_hr$month, "-", db_hr$day,
   " ", db_hr$hour, ":00:00"
 )
+db_hr$tstime <-as.numeric(as.POSIXlt(db_hr$tstime, tz="GMT"))
+#as.POSIXct(db_hr$tstime[224], origin="1960-01-01")
+
 dh_cols = c(
   'tstime','entity_type', 'featureid', 
   'rain', 'wind', 'rad', 'wet_time',
