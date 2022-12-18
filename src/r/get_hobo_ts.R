@@ -126,4 +126,4 @@ rbdnb <- sqldf::sqldf(
   "
 )
 
-write.csv(rbdnb, outfile, row.names=FALSE)
+write.table(rbdnb, outfile, row.names=FALSE, sep='\t')
