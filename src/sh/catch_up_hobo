@@ -1,0 +1,28 @@
+#!/bin/bash
+if [ $# -lt 4 ]; then
+  echo "Use: catch_up_hobo past_days fid hobo_logger_id hobo_uid single_day=0(0/1)"
+  exit
+fi
+ 
+past_days=$1
+fid=$2 # 6915
+logger=$3
+uid=$4 # 7451
+counter=$((past_days * -1))
+single_day=0
+if [ $# -gt 4 ]; then
+  single_day=$5
+fi
+cd /var/www/d.live
+echo "$counter"
+while [ $counter -lt 1 ]; do
+  bdate=`date --date="-${counter} days" +"%Y-%m-%d"`
+  sdate="$bdate 00:00:00"
+  edate="$bdate 23:59:59"
+  echo "Rscript modules/dh_weather/src/r/get_hobo_ts.R $fid dh_feature $uid $logger \"$sdate\" \"$edate\" /tmp/dh_weather_${fid}.txt"
+  Rscript modules/dh_weather/src/r/get_hobo_ts.R $fid dh_feature $uid $logger "$sdate" "$edate" /tmp/dh_weather_${fid}.txt
+  counter=$((counter + 1))
+  if [ $single_day -gt 0 ]; then
+    exit
+  fi
+done
