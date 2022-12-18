@@ -92,6 +92,7 @@ for (r in raw_data) {
 rbdnb <- sqldf::sqldf(
   "
     select a.featureid, a.tstime, 'weather_obs' as varkey, 
+      'dh_feature' as entity_type,
       a.tsvalue as temp, 
       (wet.tsvalue / 100.0) * 5 as wet_time, 
       dpt.tsvalue as dpt, 
