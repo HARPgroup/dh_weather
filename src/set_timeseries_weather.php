@@ -53,19 +53,7 @@ if ($query_type == 'cmd') {
 foreach ($data as $element) {
 
   error_log(print_r($element,1));
-  if (!empty($element['extras'])) {
-    parse_str($element['extras'], $extras);
-    unset($element['extras']);
-    foreach ($extras as $key => $value) {
-      $element[$key] = $value;
-    }
-  }
-  if ( 
-    (strtolower($element['propvalue'] ) == 'null')
-    or (empty($element['propvalue']))
-  ) {
-    $element['propvalue'] = NULL;
-  }
+  
   $tsw_result = dh_update_timeseries_weather($element);
   if ($tsw_result === FALSE) {
     error_log("Problem adding weather data" . print_r($element,1)); 
