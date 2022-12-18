@@ -147,7 +147,7 @@ rbdnb$year <- format(as.POSIXct(rbdnb$tstime), "%Y")
 # also t oconvert wet_pct to wet_duration
 db_hr <- sqldf::sqldf(
   "
-    select a.year, a.month, a.day, a.hour, 
+    select a.year, a.month, a.day, a.hour, a.featureid, a.entity_type,
     60.0 * (0.01 * sum(a.wet_pct)) / count(a.tstime) as wet_time,
     avg(rh) as rh,
     avg(temp) as temp, 
@@ -156,12 +156,18 @@ db_hr <- sqldf::sqldf(
     avg(rad) as rad, 
     sum(rain) as rain
     from rbdnb as a
-    group by a.year, a.month, a.day, a.hour
+    group by a.year, a.month, a.day, a.hour, a.featureid, a.entity_type
   "
 )
 db_hr$tstime <- paste0(
   db_hr$year,"-",db_hr$month, "-", db_hr$day,
   " ", db_hr$hour, ":00:00"
 )
+dh_cols = c(
+  'tstime','entity_type', 'featureid', 
+  'rain', 'wind', 'rad', 'wet_time',
+  'rh', 'temp', 'dpt'
+)
+db_hr <- db_hr[dh_cols]
 
 write.table(db_hr, outfile, row.names=FALSE, sep='\t')
