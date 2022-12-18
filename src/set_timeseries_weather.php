@@ -17,7 +17,7 @@ error_log("Args:" . print_r($args,1));
 $query_type = $args[0];
 $data = array();
 if ($query_type == 'cmd') {
-  error_log("cmd mode not yet enabled.  Use file import only.")
+  error_log("cmd mode not yet enabled.  Use file import only.");
   error_log("$use_msg");
   die;
   if (count($args) >= 6) {
@@ -50,8 +50,6 @@ if ($query_type == 'cmd') {
   error_log("Record 1: " . print_r($data[0],1));
 }
 
-/*
-
 foreach ($data as $element) {
 
   error_log(print_r($element,1));
@@ -63,5 +61,7 @@ foreach ($data as $element) {
     error_log("Added tid = $tsw_result");
   }
 }
+
+/*
 */
 ?>
