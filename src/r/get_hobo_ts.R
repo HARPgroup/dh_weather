@@ -87,15 +87,18 @@ for (r in raw_data) {
     rbd <- rbind(rbd, as.data.frame(thisrec))
   }
 }
+# note we assume a 5 minute interval here for wetness
+# this is due to a unit shift when switching to hobo
 rbdnb <- sqldf::sqldf(
   "
     select a.featureid, a.tstime, 'weather_obs' as varkey, 
-      a.tsvalue as tempr, 
-      wet.tsvalue as wet, 
+      a.tsvalue as temp, 
+      (wet.tsvalue / 100.0) * 5 as wet_time, 
       dpt.tsvalue as dpt, 
       wind.tsvalue as wind, 
       rain.tsvalue as rain, 
-      rad.tsvalue as rad
+      rad.tsvalue as rad, 
+      rh as rh
     from rbd as a 
     left outer join rbd as wet 
     on (
@@ -121,6 +124,11 @@ rbdnb <- sqldf::sqldf(
     on (
       a.tstime = rad.tstime
       and rad.varkey = 'Solar Radiation'
+    )
+    left outer join rbd as rh 
+    on (
+      a.tstime = rh.tstime
+      and rh.varkey = 'RH'
     )
     where a.varkey = 'Temperature'
 
