@@ -53,7 +53,7 @@ if ($query_type == 'cmd') {
 foreach ($data as $element) {
 
   error_log(print_r($element,1));
-  $element['varid'] = isset($element['varkey']) ? dh_varkey2varid($element['varkey']) : $element['varid'];
+  $element['varid'] = isset($element['varkey']) ? dh_varkey2varid($element['varkey'], TRUE) : $element['varid'];
   $tsw_result = dh_update_timeseries_weather($element);
   if ($tsw_result === FALSE) {
     error_log("Problem adding weather data" . print_r($element,1)); 
