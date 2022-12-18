@@ -3,6 +3,9 @@ library("rjson")
 # get command args
 
 argst <- commandArgs(trailingOnly=T)
+if (is.na(argst[1])) {
+  message("Use: Rscript get_hobo_ts.R featureid entity_type hobo_userid hobo_logger start_date end_date outfile")
+}
 f_id <- as.integer(argst[1])
 e_type <- argst[2]
 userid <- as.integer(argst[3])
@@ -14,6 +17,7 @@ if (argst[6] == 'now') {
 }
 outfile <- argst[7]
 # test dataset
+# f_id = 6919
 # userid = 7451 # Miz account id
 # start_date = '2022-01-01 00:00:00'
 # end_date = '2022-01-01 23:59:59'
