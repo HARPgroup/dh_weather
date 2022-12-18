@@ -98,7 +98,7 @@ rbdnb <- sqldf::sqldf(
       wind.tsvalue as wind, 
       rain.tsvalue as rain, 
       rad.tsvalue as rad, 
-      rh as rh
+      rh.tsvalue as rh
     from rbd as a 
     left outer join rbd as wet 
     on (
