@@ -1,6 +1,6 @@
 #!/user/bin/env drush
 <?php
-module_load_include('inc', 'om', 'src/om_translate_to_dh');
+module_load_include('module', 'dh_weather');
 
 $args = array();
 while ($arg = drush_shift()) {
