@@ -13,7 +13,7 @@ if (count($args) < 1) {
   die;
 }
 error_log("Args:" . print_r($args,1));
-/*
+
 $query_type = $args[0];
 $data = array();
 if ($query_type == 'cmd') {
@@ -50,7 +50,7 @@ if ($query_type == 'cmd') {
   error_log("Record 1: " . print_r($data[0],1));
 }
 
-
+/*
 
 foreach ($data as $element) {
 
