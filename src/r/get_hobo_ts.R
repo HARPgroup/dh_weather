@@ -1,5 +1,4 @@
 library("rjson")
-library("lubridate")
 # get command args
 
 argst <- commandArgs(trailingOnly=T)
@@ -139,10 +138,10 @@ rbdnb <- sqldf::sqldf(
 
 
 origin <- "1970-01-01"
-rbdnb$hour <- hour(as.POSIXct(rbdnb$tstime))
-rbdnb$day <- day(as.POSIXct(rbdnb$tstime))
-rbdnb$month <- month(as.POSIXct(rbdnb$tstime))
-rbdnb$year <- year(as.POSIXct(rbdnb$tstime))
+rbdnb$hour <- format(as.POSIXct(rbdnb$tstime), "%H")
+rbdnb$day <- format(as.POSIXct(rbdnb$tstime), "%d")
+rbdnb$month <- format(as.POSIXct(rbdnb$tstime), "%m")
+rbdnb$year <- format(as.POSIXct(rbdnb$tstime), "%Y")
 
 # transform to hourly to save space and 
 # also t oconvert wet_pct to wet_duration
@@ -159,6 +158,10 @@ db_hr <- sqldf::sqldf(
     from rbdnb as a
     group by a.year, a.month, a.day, a.hour
   "
+)
+db_hr$tstime <- paste0(
+  db_hr$year,"/",db_hr$month, "/", db_hr$day,
+  " ", db_hr$hour, "00:00"
 )
 
 write.table(db_hr, outfile, row.names=FALSE, sep='\t')
