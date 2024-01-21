@@ -5,7 +5,7 @@ if [ $# -lt 4 ]; then
 fi
  
 startdate=$1
-enddate=42
+enddate=$2
 fid=$3 # 6915
 logger=$4
 uid=$5 # 7451
