@@ -158,7 +158,7 @@ function dh_weather_sensor_form_submit(&$form, &$form_state) {
     'entity_type' => 'dh_feature',
   );
   $hobo_id_prop = om_model_getSetProperty($hobo_id_info);
-  $hobo_id_prop->propvalue = $form_state['values']['hobo_id'];
+  $hobo_id_prop->propcode = $form_state['values']['hobo_id'];
   $hobo_id_prop->save();
   $form_state['redirect'] = $url;
 }
