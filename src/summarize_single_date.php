@@ -17,12 +17,12 @@ $thisdate = $args[3];
 
 $sumvar = array_shift(dh_varkey2varid('weather_obs_daily_sum'));
 $values = array(
-  'featureid' => $sensor,
+  'featureid' => $featureid,
   'entity_type' => 'dh_feature',
   'tstime' => $thisdate,
   'varid' => $sumvar
 );
-echo "Updating $sensor - $thisdate for varid = $sumvar \n";
+echo "Updating $featureid - $thisdate for varid = $sumvar \n";
 dh_update_timeseries_weather($values, 'tstime_date_singular');
 
 ?>
