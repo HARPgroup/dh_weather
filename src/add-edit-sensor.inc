@@ -89,12 +89,13 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
     'featureid' => $dh_feature->hydroid,
     'entity_type' => 'dh_feature',
   );
-  $hobo_id = om_get_property($hobo_id_info);
+  $hobo_id_prop = om_get_property($hobo_id_info);
+  dpm($hobo_id_prop);
   // convert value if existing
   $form['hobo_id'] = array(
     '#title' => t('HOBO Serial Number'),
     '#type' => 'textfield',
-    '#default_value' => $hobo_id->propcode,
+    '#default_value' => $hobo_id_prop->propcode,
     '#description' => t('This is used to retrieve data from the HOBO system..'),
     '#required' => TRUE,
     '#size' => 10,
@@ -158,7 +159,6 @@ function dh_weather_sensor_form_submit(&$form, &$form_state) {
   );
   $hobo_id_prop = om_model_getSetProperty($hobo_id_info);
   $hobo_id_prop->propvalue = $form_state['values']['hobo_id'];
-  dpm($hobo_id_prop);
   $hobo_id_prop->save();
   $form_state['redirect'] = $url;
 }
