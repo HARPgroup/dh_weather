@@ -209,7 +209,7 @@ if ($ok) {
   }
   dsm($vid,"Linking to ");
   $lu = is_object($lu) ? $lu : entity_create('dh_feature', array('bundle' => 'weather_sensor', 
-      'dh_link_facility_mps' => array('und' => array( 0 => array('target_id' => $vid) )), 
+      'dh_link_station_sensor' => array('und' => array( 0 => array('target_id' => $vid) )), 
       'dh_link_feature_mgr_id' => array('und' => array( 0 => array('target_id' => $uid) )),
       'dh_geofield' => $default_geofield,
     )
