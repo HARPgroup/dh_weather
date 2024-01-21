@@ -25,7 +25,7 @@ while [ $counter -lt 1 ]; do
   # now import to drupal
   drush scr modules/dh_weather/src/set_timeseries_weather.php file /tmp/dh_weather_${fid}.txt
   # do the end of day summary for this date 
-  drush scr modules/dh_weather/src/set_timeseries_weather.php dh_feature $fid
+  drush scr modules/dh_weather/src/summarize_single_date.php dh_feature $fid $bdate
   if [ $single_day -gt 0 ]; then
     exit
   fi
