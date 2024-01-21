@@ -22,6 +22,8 @@ while [ $counter -lt 1 ]; do
   echo "Rscript modules/dh_weather/src/r/get_hobo_ts.R $fid dh_feature $uid $logger \"$sdate\" \"$edate\" /tmp/dh_weather_${fid}.txt"
   Rscript modules/dh_weather/src/r/get_hobo_ts.R $fid dh_feature $uid $logger "$sdate" "$edate" /tmp/dh_weather_${fid}.txt
   counter=$((counter + 1))
+  # now import to drupal
+  drush scr modules/dh_weather/src/set_timeseries_weather.php file /tmp/dh_weather_${fid}.txt
   if [ $single_day -gt 0 ]; then
     exit
   fi
