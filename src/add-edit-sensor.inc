@@ -17,15 +17,6 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
     $dh_feature->bundle = '';
   }
 
-/*  $form['name'] = array(
-    '#title' => t('Label'),
-    '#type' => 'textfield',
-    '#default_value' => $dh_feature->name,
-    '#description' => t('The human-readable name of this dH Feature type.'),
-    '#required' => TRUE,
-    '#size' => 30,
-  );*/
-
   $form['name'] = array(
     '#title' => t('Station Name'),
     '#type' => 'textfield',
@@ -36,7 +27,7 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
   );  
 
   $form['ftype'] = array(
-    '#title' => t('Status'),
+    '#title' => t('Station Type'),
     '#type' => 'select',
     '#options' => array(
       'hobo' => t('Hobo'),
@@ -216,6 +207,7 @@ if ($ok) {
       $op = 'edit';
     }
   }
+  dsm($vid,"Linking to ");
   $lu = is_object($lu) ? $lu : entity_create('dh_feature', array('bundle' => 'weather_sensor', 
       'dh_link_facility_mps' => array('und' => array( 0 => array('target_id' => $vid) )), 
       'dh_link_feature_mgr_id' => array('und' => array( 0 => array('target_id' => $uid) )),
