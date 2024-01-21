@@ -75,7 +75,7 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
 
 
   field_attach_form('dh_feature', $dh_feature, $form, $form_state);
-  $hiddens = array('dh_link_feature_mgr_id', 'dh_link_admin_location', 'dh_link_facility_mps', 'dh_areasqkm');
+  $hiddens = array('dh_link_feature_mgr_id', 'dh_link_admin_location', 'dh_link_facility_mps', 'dh_areasqkm', 'dh_link_station_sensor');
   foreach ($hiddens as $hidethis) {
     if (isset($form[$hidethis])) {
       $form[$hidethis]['#type'] = 'hidden';
