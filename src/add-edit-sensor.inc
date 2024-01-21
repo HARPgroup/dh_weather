@@ -83,12 +83,11 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
   }
   // load property (or create if not existing)
   // convert value if existing
-  $form['area'] = array(
-    '#title' => t('Area (ac)'),
+  $form['hobo_id'] = array(
+    '#title' => t('HOBO Serial Number'),
     '#type' => 'textfield',
-    '#element_validate' => array('element_validate_number'),
     '#default_value' => $area_value,
-    '#description' => t('Area of this block.'),
+    '#description' => t('This is used to retrieve data from the HOBO system..'),
     '#required' => TRUE,
     '#size' => 10,
   );  
@@ -139,32 +138,19 @@ function dh_weather_sensor_form_submit(&$form, &$form_state) {
   form_load_include($form_state, 'inc', 'entity', 'includes/entity.ui');
   form_load_include($form_state, 'inc', 'dh', 'dh.admin');
   $dh_feature = entity_ui_form_submit_build_entity($form, $form_state);
-  if (!$dh_feature->hydroid) {
-    // new feature
-    $config_variety = TRUE;
-  } else {
-    $config_variety = FALSE;
-  }
   // save first to insure featureid
   if (!($dh_feature->hydroid > 0)) {
     $dh_feature->save();
   }
-  $area_info = array(
-    'varkey' => 'om_agman_area',
+  $hobo_id_info = array(
+    'propname' => 'hobo_id',
+    'varkey' => 'om_class_AlphanumericConstant',
     'featureid' => $dh_feature->hydroid,
     'entity_type' => 'dh_feature',
   );
-  $area_prop = om_model_getSetProperty($area_info, 'varid');
-  $area_prop->propvalue = $form_state['values']['area'];
-  $area_prop->save();
-  $plugin = dh_variables_getPlugins($area_prop);
-  $dh_feature->dh_areasqkm['und'][0]['value'] = $plugin->convertArea($area_prop->propvalue, 'ac', 'sqkm');
-  $dh_feature->save();
-  if ($config_variety) {
-    $url = implode('/', array('ipm-landunit-info', $dh_feature->hydroid, 'editcrop'));
-  } else {
-    $url = implode('/', array('ipm-landunit-info', $dh_feature->hydroid));
-  }
+  $hobo_id_prop = om_model_getSetProperty($hobo_id_info, 'varid');
+  $hobo_id_prop->propvalue = $form_state['values']['hobo_id'];
+  $hobo_id_prop->save();
   $form_state['redirect'] = $url;
 }
 
