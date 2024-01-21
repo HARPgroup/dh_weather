@@ -12,9 +12,9 @@ if (count($args) < 3) {
   die;
 }
 error_log("arg 1:" . $args[1]);
-$entity_type = $args[2];
-$featureid = $args[3];
-$thisdate = $args[4];
+$entity_type = $args[0];
+$featureid = $args[1];
+$thisdate = $args[2];
 
 $sumvar = array_shift(dh_varkey2varid('weather_obs_daily_sum'));
 $values = array(
