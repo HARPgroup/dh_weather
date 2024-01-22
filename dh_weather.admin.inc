@@ -280,10 +280,10 @@ function dh_timeseries_weather_form($form, &$form_state, $dh_timeseries_weather,
     '#size' => 16,
   );
   
-  $form['precip'] = array(
-    '#title' => t('Precipiation'),
+  $form['rain'] = array(
+    '#title' => t('Precipitation'),
     '#type' => 'textfield',
-    '#default_value' => $dh_timeseries_weather->precip,
+    '#default_value' => $dh_timeseries_weather->rain,
     '#description' => t('Precipiation (mm).'),
     '#required' => FALSE,
     '#size' => 16,

@@ -88,6 +88,7 @@ for (r in raw_data) {
 }
 # note we assume a 5 minute interval here for wetness
 # this is due to a unit shift when switching to hobo
+# note we convert the si_value in display but all are stored as SI 
 rbdnb <- sqldf::sqldf(
   "
     select a.featureid, a.tstime, 'weather_obs' as varkey, 
