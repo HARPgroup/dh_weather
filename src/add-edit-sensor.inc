@@ -103,6 +103,27 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
   //$form['dh_areasqkm'][
   //dpm($dh_feature,'dh_feature');
   //dpm($form,'form');
+  
+  $hobo_user_info = array(
+    'propname' => 'hobo_userid',
+    'varkey' => 'om_class_AlphanumericConstant',
+    'featureid' => $dh_feature->hydroid,
+    'entity_type' => 'dh_feature',\
+  );
+  $hobo_user_prop = om_get_property($hobo_user_info);
+  dpm($hobo_user_prop);
+  // convert value if existing
+  $form['hobo_user'] = array(
+    '#title' => t('HOBO User ID'),
+    '#type' => 'textfield',
+    '#default_value' => 7451,
+    '#description' => t('This is the account that manages this device in the HOBO system.'),
+    '#required' => TRUE,
+    '#size' => 10,
+  );  
+  //$form['dh_areasqkm'][
+  //dpm($dh_feature,'dh_feature');
+  //dpm($form,'form');
 
   $form['data']['#tree'] = TRUE;
 
@@ -160,6 +181,15 @@ function dh_weather_sensor_form_submit(&$form, &$form_state) {
   $hobo_logger_prop = om_model_getSetProperty($hobo_logger_info);
   $hobo_logger_prop->propcode = $form_state['values']['hobo_logger'];
   $hobo_logger_prop->save();
+  $hobo_user_info = array(
+    'propname' => 'hobo_user',
+    'varkey' => 'om_class_AlphanumericConstant',
+    'featureid' => $dh_feature->hydroid,
+    'entity_type' => 'dh_feature',
+  );
+  $hobo_user_prop = om_model_getSetProperty($hobo_user_info);
+  $hobo_user_prop->propcode = $form_state['values']['hobo_user'];
+  $hobo_user_prop->save();
   $form_state['redirect'] = $url;
 }
 
