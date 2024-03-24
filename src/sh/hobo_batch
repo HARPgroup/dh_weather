@@ -3,12 +3,14 @@
 # see: https://github.com/rburghol/om_agman/issues/278
 $single=$1
 while IFS= read -r line; do
+  cd /home/ubuntu/
   #echo "Text read from file: $line"
   IFS="$IFS," read fid hobo_logger hobo_userid days_behind <<< "$line"
   if [ $single -eq 1 ]; then
     ./catch_up_hobo 1 $fid $hobo_logger $hobo_userid 1
   else
-    catch_up_hobo $days_behind $fid $hobo_logger $hobo_userid 0
+    ./catch_up_hobo $days_behind $fid $hobo_logger $hobo_userid 0
   fi
+  cd /var/www/d.live/
   drush scr modules/dh_weather/src/summarise_last24.php dh_feature $fid
 done < '/tmp/hobo_devices.txt' 
