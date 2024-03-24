@@ -108,7 +108,7 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
     'propname' => 'hobo_userid',
     'varkey' => 'om_class_AlphanumericConstant',
     'featureid' => $dh_feature->hydroid,
-    'entity_type' => 'dh_feature',\
+    'entity_type' => 'dh_feature',
   );
   $hobo_user_prop = om_get_property($hobo_user_info);
   dpm($hobo_user_prop);
