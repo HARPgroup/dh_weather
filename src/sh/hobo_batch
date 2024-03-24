@@ -6,7 +6,7 @@ while IFS= read -r line; do
   cd /home/ubuntu/
   #echo "Text read from file: $line"
   IFS="$IFS," read fid hobo_logger hobo_userid days_behind <<< "$line"
-  if [ $single -eq 1 ]; then
+  if [[ $single -eq 1 ]]; then
     ./catch_up_hobo 1 $fid $hobo_logger $hobo_userid 1
   else
     ./catch_up_hobo $days_behind $fid $hobo_logger $hobo_userid 0
