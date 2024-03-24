@@ -17,15 +17,6 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
     $dh_feature->bundle = '';
   }
 
-/*  $form['name'] = array(
-    '#title' => t('Label'),
-    '#type' => 'textfield',
-    '#default_value' => $dh_feature->name,
-    '#description' => t('The human-readable name of this dH Feature type.'),
-    '#required' => TRUE,
-    '#size' => 30,
-  );*/
-
   $form['name'] = array(
     '#title' => t('Station Name'),
     '#type' => 'textfield',
@@ -36,7 +27,7 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
   );  
 
   $form['ftype'] = array(
-    '#title' => t('Status'),
+    '#title' => t('Station Type'),
     '#type' => 'select',
     '#options' => array(
       'hobo' => t('Hobo'),
@@ -84,20 +75,28 @@ function dh_weather_sensor_form($form, &$form_state, $dh_feature = null, $op = '
 
 
   field_attach_form('dh_feature', $dh_feature, $form, $form_state);
-  $hiddens = array('dh_link_feature_mgr_id', 'dh_link_admin_location', 'dh_link_facility_mps', 'dh_areasqkm');
+  $hiddens = array('dh_link_feature_mgr_id', 'dh_link_admin_location', 'dh_link_facility_mps', 'dh_areasqkm', 'dh_link_station_sensor');
   foreach ($hiddens as $hidethis) {
     if (isset($form[$hidethis])) {
       $form[$hidethis]['#type'] = 'hidden';
     }
   }
   // load property (or create if not existing)
+  
+  $hobo_id_info = array(
+    'propname' => 'hobo_id',
+    'varkey' => 'om_class_AlphanumericConstant',
+    'featureid' => $dh_feature->hydroid,
+    'entity_type' => 'dh_feature',
+  );
+  $hobo_id_prop = om_get_property($hobo_id_info);
+  dpm($hobo_id_prop);
   // convert value if existing
-  $form['area'] = array(
-    '#title' => t('Area (ac)'),
+  $form['hobo_id'] = array(
+    '#title' => t('HOBO Serial Number'),
     '#type' => 'textfield',
-    '#element_validate' => array('element_validate_number'),
-    '#default_value' => $area_value,
-    '#description' => t('Area of this block.'),
+    '#default_value' => $hobo_id_prop->propcode,
+    '#description' => t('This is used to retrieve data from the HOBO system..'),
     '#required' => TRUE,
     '#size' => 10,
   );  
@@ -148,32 +147,19 @@ function dh_weather_sensor_form_submit(&$form, &$form_state) {
   form_load_include($form_state, 'inc', 'entity', 'includes/entity.ui');
   form_load_include($form_state, 'inc', 'dh', 'dh.admin');
   $dh_feature = entity_ui_form_submit_build_entity($form, $form_state);
-  if (!$dh_feature->hydroid) {
-    // new feature
-    $config_variety = TRUE;
-  } else {
-    $config_variety = FALSE;
-  }
   // save first to insure featureid
   if (!($dh_feature->hydroid > 0)) {
     $dh_feature->save();
   }
-  $area_info = array(
-    'varkey' => 'om_agman_area',
+  $hobo_id_info = array(
+    'propname' => 'hobo_id',
+    'varkey' => 'om_class_AlphanumericConstant',
     'featureid' => $dh_feature->hydroid,
     'entity_type' => 'dh_feature',
   );
-  $area_prop = om_model_getSetProperty($area_info, 'varid');
-  $area_prop->propvalue = $form_state['values']['area'];
-  $area_prop->save();
-  $plugin = dh_variables_getPlugins($area_prop);
-  $dh_feature->dh_areasqkm['und'][0]['value'] = $plugin->convertArea($area_prop->propvalue, 'ac', 'sqkm');
-  $dh_feature->save();
-  if ($config_variety) {
-    $url = implode('/', array('ipm-landunit-info', $dh_feature->hydroid, 'editcrop'));
-  } else {
-    $url = implode('/', array('ipm-landunit-info', $dh_feature->hydroid));
-  }
+  $hobo_id_prop = om_model_getSetProperty($hobo_id_info);
+  $hobo_id_prop->propcode = $form_state['values']['hobo_id'];
+  $hobo_id_prop->save();
   $form_state['redirect'] = $url;
 }
 
@@ -216,8 +202,9 @@ if ($ok) {
       $op = 'edit';
     }
   }
+  dsm($vid,"Linking to ");
   $lu = is_object($lu) ? $lu : entity_create('dh_feature', array('bundle' => 'weather_sensor', 
-      'dh_link_facility_mps' => array('und' => array( 0 => array('target_id' => $vid) )), 
+      'dh_link_station_sensor' => array('und' => array( 0 => array('target_id' => $vid) )), 
       'dh_link_feature_mgr_id' => array('und' => array( 0 => array('target_id' => $uid) )),
       'dh_geofield' => $default_geofield,
     )
