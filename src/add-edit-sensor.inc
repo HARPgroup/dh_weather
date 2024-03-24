@@ -182,7 +182,7 @@ function dh_weather_sensor_form_submit(&$form, &$form_state) {
   $hobo_logger_prop->propcode = $form_state['values']['hobo_logger'];
   $hobo_logger_prop->save();
   $hobo_user_info = array(
-    'propname' => 'hobo_user',
+    'propname' => 'hobo_userid',
     'varkey' => 'om_class_AlphanumericConstant',
     'featureid' => $dh_feature->hydroid,
     'entity_type' => 'dh_feature',
