@@ -65,7 +65,8 @@ from (
     )
     left outer join dh_timeseries_weather as c 
     on ( 
-      c.varid in (select hydroid from dh_variabledefinition where varkey = 'noaa_precip_raster' ) 
+      c.varid in (select hydroid from dh_variabledefinition where varkey = 'precip_obs_wy2date' ) 
+      --c.varid in (select hydroid from dh_variabledefinition where varkey = 'noaa_precip_raster' ) 
     )
     -- do for NOVA and Shenandoah drought regions
     -- Point of Rocks region is 437177 for testing

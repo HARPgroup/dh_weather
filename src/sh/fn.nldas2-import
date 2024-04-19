@@ -1,0 +1,32 @@
+#!/bin/bash
+. hspf_config
+cd $NLDAS_ROOT
+fname=$1 # ex: fname=$NLDAS_ROOT/1984/001/NLDAS_FORA0125_H.A19840101.0000.002.grb
+db=$2 # ex: db="drupal.dh03"
+dbhost=$3 # dbhost="dbase2"
+# what's in it?
+gdalinfo $fname > rtma_raster_info
+# convert to geotiff
+cd out/sql
+tifname="${fname}-4326.tif"
+gdalwarp $fname -t_srs EPSG:4326 $tifname
+# note: -t = tile size for splitting internal db storage tiles, 1000x1000 used in NOAA drougt should be good default?
+raster2pgsql -t 1000x1000 $tifname tmp_nldas2 > tmp_nldas2.sql
+echo "drop table tmp_nldas2" | psql -h $dbhost $db
+cat tmp_nldas2.sql | psql -h $dbhost $db
+# Check out a value
+# Note: band 10 has precipitation
+# the << notation makes a comment block
+<<com
+select ST_Value(a.rast, 10, st_centroid(g.dh_geofield_geom))
+from dh_feature as f
+left outer join field_data_dh_geofield as g
+on (f.hydroid = g.entity_id and g.entity_type = 'dh_feature')
+left outer join tmp_nldas2 as a
+on (a.rid = 1)
+where f.hydrocode='x391y95';
+com # ends the comment block
+
+
+# Next: tbd:
+# add a dh_weather data entry (attach to feature that outlines the entire raster area, cb_nldas2_grid or something) 

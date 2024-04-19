@@ -163,7 +163,8 @@ class dHVPLast24Weather extends dHVPWeatherSummary {
     $varids = dh_varkey2varid($this->obs_varkey);
     //dpm($varids, $this->darkness_varkey);
     $varid = array_shift( $varids);
-    $end = db_query("select max(tstime) from dh_timeseries_weather where featureid = :fid  and varid = :varid", array(':fid' => $entity->featureid, ':varid' => $varid))->fetchField();
+    error_log("select max(tstime) from dh_timeseries_weather where featureid = $entity->featureid and varid = $varid ");
+    $end = db_query("select max(tstime) from dh_timeseries_weather where featureid = :fid and varid = :varid", array(':fid' => $entity->featureid, ':varid' => $varid))->fetchField();
     $begin = $end - 86400;
     //dpm('range'," $begin, $end");
     $summary = $this->summarizeTimePeriod($entity->entity_type, $entity->featureid, $this->obs_varkey, $begin, $end);
