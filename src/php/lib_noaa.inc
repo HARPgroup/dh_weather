@@ -153,7 +153,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   $qa_config = array(
     'band' => 1, 
     'stat' => 'min', 
-    'nodata_val' => -1000,
+    'nodata_val' => -10000, // changed 2024/04/19 -- was this alwyas 10,000 not 1,000?
     'start' => -1000,
     'end' => -1000,
     'fid' => -1000,
