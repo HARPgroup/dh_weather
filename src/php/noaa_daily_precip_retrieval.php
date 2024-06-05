@@ -48,7 +48,6 @@ print("Retrieving Precip for $date single = $single overwrite = $overwrite .\n")
 
 # get precip till today
 // changed 6/28/2017
-$basedataurl = "http://water.weather.gov/precip/downloads";
 
 $config = array(
   'date' => $date,
@@ -85,6 +84,7 @@ foreach ($dates as $date) {
   $config['dataset'] = 'nws_precip_1day_';
   $config['varkey'] = 'noaa_precip_raster';
   $config['multiplicity'] = 'tstime_singular';
+  $config['basedataurl'] = "https://water.noaa.gov/resources/downloads/precip/stageIV"
   $result = dh_weather_get_noaa_gridded_precip($config, $overwrite, $single, $debug);
   if ($result) {
     $config['dataset'] = 'nws_precip_wytd_';
