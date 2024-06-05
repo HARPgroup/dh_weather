@@ -5,7 +5,6 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   global $databases;
   error_log("config" . print_r($config,1));
   $config += array(
-   'baseurl' => "http://water.weather.gov/precip/downloads",
    'date' => date('Y-m-d'),
    'entity_type' => 'dh_feature',
    'ext' => '_conus.tif',
@@ -24,6 +23,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   list($yr, $mo, $da) = explode('-', $config['date']);
   $extent_hydroid = dh_search_feature($config['extent_hydrocode'], $config['extent_bundle'], $config['extent_ftype']);
   $dataset= $config['dataset'];
+  $baseurl = $config['baseurl'];
   $ext=$config['ext'];
   $fil="$dataset$yr$mo$da$ext";
   $varkey = $config['varkey'];
@@ -32,7 +32,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   // create the path name for the file that will hold the SQL importable grid
   // ************************************************************************
   $sql_path = $config['scratchdir'] . '/' . 'tmp_precipgrid.sql';
-  $url="http://water.weather.gov/precip/downloads/$yr/$mo/$da/$fil";
+  $url="$baseurl/$yr/$mo/$da/$fil";
   // download the file
   /*
   # Download a test file

@@ -40,11 +40,11 @@ if ($date) {
 
 # get precip till today
 // changed 6/28/2017
-$basedataurl = "http://water.weather.gov/precip/downloads";
 while ($date->format('Y-m-d') <> date('Y-m-d')) {
   print("Retrieving Precip for " . $date->format('Y-m-d') . " .\n");
   $config = array(
     'date' => $date->format('Y-m-d'),
+	'baseurl' => "https://water.noaa.gov/resources/downloads/precip/stageIV"
   );
   dh_weather_get_noaa_gridded_precip ($config, $fileURL, $filename, $debug);
   $date->modify("+1 day");
