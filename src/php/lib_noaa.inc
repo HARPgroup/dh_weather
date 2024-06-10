@@ -25,7 +25,7 @@ function dh_weather_get_noaa_gridded_precip ($config = array(), $overwrite = FAL
   $dataset= $config['dataset'];
   $baseurl = $config['baseurl'];
   $ext=$config['ext'];
-  $fil="$dataset$yr$mo$da$ext";
+  $fil="{$dataset}20{$yr}{$mo}{$da}{$ext}";
   $varkey = $config['varkey'];
   $file_path = $config['scratchdir'] . '/' . $fil;
   // ************************************************************************

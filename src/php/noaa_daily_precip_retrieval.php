@@ -84,7 +84,7 @@ foreach ($dates as $date) {
   $config['dataset'] = 'nws_precip_1day_';
   $config['varkey'] = 'noaa_precip_raster';
   $config['multiplicity'] = 'tstime_singular';
-  $config['baseurl'] = "https://water.noaa.gov/resources/downloads/precip/stageIV";
+  $config['baseurl'] = 'https://water.noaa.gov/resources/downloads/precip/stageIV';
   $result = dh_weather_get_noaa_gridded_precip($config, $overwrite, $single, $debug);
   if ($result) {
     $config['dataset'] = 'nws_precip_wytd_';
