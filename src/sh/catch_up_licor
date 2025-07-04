@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ $# -lt 4 ]; then
-  echo "Use: catch_up_hobo past_days fid hobo_logger_id hobo_uid single_day=0(0/1)"
+  echo "Use: catch_up_licor past_days fid hobo_logger_id hobo_uid single_day=0(0/1)"
   exit
 fi
  
@@ -19,8 +19,8 @@ while [ $counter -lt 1 ]; do
   bdate=`date --date="-${counter} days" +"%Y-%m-%d"`
   sdate="$bdate 00:00:00"
   edate="$bdate 23:59:59"
-  echo "Rscript modules/dh_weather/src/r/get_hobo_ts.R $fid dh_feature $uid $logger \"$sdate\" \"$edate\" /tmp/dh_weather_${fid}.txt"
-  Rscript modules/dh_weather/src/r/get_hobo_ts.R $fid dh_feature $uid $logger "$sdate" "$edate" /tmp/dh_weather_${fid}.txt
+  echo "Rscript modules/dh_weather/src/r/get_licor_ts.R $fid dh_feature $uid $logger \"$sdate\" \"$edate\" /tmp/dh_weather_${fid}.txt"
+  Rscript modules/dh_weather/src/r/get_licor_ts.R $fid dh_feature $uid $logger "$sdate" "$edate" /tmp/dh_weather_${fid}.txt
   counter=$((counter + 1))
   # now import to drupal
   drush scr modules/dh_weather/src/set_timeseries_weather.php file /tmp/dh_weather_${fid}.txt
