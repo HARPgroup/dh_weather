@@ -1,5 +1,6 @@
 library("rjson")
 # get command args
+#source("/opt/model/hydro-tools/R/cia_utils.R")
 
 argst <- commandArgs(trailingOnly=T)
 if (is.na(argst[1])) {
@@ -17,6 +18,10 @@ if (argst[6] == 'now') {
   end_date <- format(Sys.time(),"%Y-%m-%d %H:%M:%S")
 }
 outfile <- argst[7]
+# make timestamps
+start_date_mts = 1000 * as.numeric(as.POSIXct(start_date))
+end_date_mts = 1000 * as.numeric(as.POSIXct(end_date))
+
 # test dataset
 # f_id = 6920
 # e_type = 'dh_feature'
@@ -34,18 +39,18 @@ access_token <- as.character(client_info$licor_token)
 # get data
 # cmd line: /ws/data/file/{format}/user/{userId}?loggers={loggerList}&start_date_time={startTime}&end_date_time={endTime}
 inputs <- list(
-  loggers = logger, # MtAlto serial num
-  start_date_time = start_date,
-  end_date_time = end_date,
+  deviceSerialNumber = logger, # MtAlto serial num
+  startTime = start_date_mts,
+  endTime = end_date_mts,
   only_new_data = 0
 )
-get_url = paste(site,"v1/data",sep="/")
+get_url = paste(site,"v2/data",sep="/")
 licor_rest <- httr::GET(
   get_url,
   encode = "application/json",
   query = inputs,
   config = list(token = access_token),
-  httr::add_headers(Authorization=paste("bearer", access_token)),
+  httr::add_headers(Authorization=paste("Bearer", access_token)),
   httr::verbose()
 ) 
 #licor_rest
