@@ -167,11 +167,12 @@ db_hr$tstime <- paste0(
   db_hr$year,"-",db_hr$month, "-", db_hr$day,
   " ", db_hr$hour, ":00:00"
 )
-db_hr$tstime <-as.numeric(as.POSIXlt(db_hr$tstime, tz="GMT"))
+db_hr$tstime <-as.numeric(as.POSIXlt(db_hr$tstime, tz="GMT")) - 3600
+db_hr$tsendtime <-as.numeric(as.POSIXlt(db_hr$tstime, tz="GMT"))
 #as.POSIXct(db_hr$tstime[224], origin="1960-01-01")
 
 dh_cols = c(
-  'tstime','entity_type', 'featureid', 
+  'tstime', 'tsendtime','entity_type', 'featureid', 
   'rain', 'wind', 'rad', 'wet_time',
   'rh', 'temp', 'dpt', 'varkey'
 )
