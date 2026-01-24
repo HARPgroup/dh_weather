@@ -3,6 +3,8 @@ library("rjson")
 #source("/opt/model/hydro-tools/R/cia_utils.R")
 
 argst <- commandArgs(trailingOnly=T)
+# test:
+# argst = c(6920, "dh_feature", 7451, 20622331, "2025-08-19 00:00:00", "2025-08-19 23:59:59", "/tmp/dh_weather_6920.txt")
 if (is.na(argst[1])) {
   message("Use: Rscript get_licor_ts.R featureid entity_type hobo_userid hobo_logger start_date end_date outfile")
   message("Ex: Rscript get_licor_ts.R 6919 dh_feature 7451 20622331 \"2022-01-01 00:00:00\" \"2022-01-01 23:59:59\" /tmp/dhw_test.txt")
@@ -54,21 +56,35 @@ licor_rest <- httr::GET(
   httr::verbose()
 ) 
 #licor_rest
-raw_data = httr::content(licor_rest)$data
-
+raw_data = httr::content(licor_rest)$sensors
+# try to guess initial interval for  
+ts2 = try(raw_data[[1]]$data[[1]]$records[[2]][[1]])
+ts1 = try(raw_data[[1]]$data[[1]]$records[[2]][[1]])
+dt = 300 * 1000 # default dt
+if (!is.null(ts1) ) {
+  if (!is.null(ts2)) {
+    dt = ts2 - ts1
+  }
+}
 rbd = FALSE
-for (r in raw_data) {
-  thisrec <- list(
-    featureid = f_id,
-    varkey = r$sensor_measurement_type,
-    entity_type = e_type,
-    tstime = r$timestamp,
-    tsvalue = r$value
-  )
-  if (is.logical(rbd)) {
-    rbd = as.data.frame(thisrec)
-  } else {
-    rbd <- rbind(rbd, as.data.frame(thisrec))
+for (rd in raw_data) {
+  for (rdr in rd$data) {
+    sensor_measurement_type = rdr$measurementType
+    for (r in rdr$records) {
+      thisrec <- list(
+        featureid = f_id,
+        varkey = sensor_measurement_type,
+        entity_type = e_type,
+        tstime = r[[1]] - dt,
+        tsendtime = r[[1]],
+        tsvalue = r[[2]]
+      )
+      if (is.logical(rbd)) {
+        rbd = as.data.frame(thisrec)
+      } else {
+        rbd <- rbind(rbd, as.data.frame(thisrec))
+      }
+    }
   }
 }
 # note we assume a 5 minute interval here for wetness
