@@ -1,7 +1,7 @@
 library("rjson")
 # get command args
 #source("/opt/model/hydro-tools/R/cia_utils.R")
-
+options(scipen = 999)
 argst <- commandArgs(trailingOnly=T)
 # test:
 # argst = c(6920, "dh_feature", 7451, 20622331, "2025-08-19 00:00:00", "2025-08-19 23:59:59", "/tmp/dh_weather_6920.txt")
@@ -59,7 +59,8 @@ licor_rest <- httr::GET(
 raw_data = httr::content(licor_rest)$sensors
 # try to guess initial interval for  
 ts2 = try(raw_data[[1]]$data[[1]]$records[[2]][[1]])
-ts1 = try(raw_data[[1]]$data[[1]]$records[[2]][[1]])
+ts1 = try(raw_data[[1]]$data[[1]]$records[[1]][[1]])
+# Find the dt if data conforms, otherwise assume
 dt = 300 * 1000 # default dt
 if (!is.null(ts1) ) {
   if (!is.null(ts2)) {
@@ -138,12 +139,11 @@ rbdnb <- sqldf::sqldf(
 )
 
 
-
-origin <- "1970-01-01"
-rbdnb$hour <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%H")
-rbdnb$day <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%d")
-rbdnb$month <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%m")
-rbdnb$year <- format(as.POSIXct(rbdnb$tstime, origin="UTC"), "%Y")
+rbdnb$tstime <- as.integer(as.numeric(rbdnb$tstime)/1000)
+rbdnb$hour <- format(as.POSIXct(rbdnb$tstime, origin = "1970-01-01", tz = "UTC"), "%H")
+rbdnb$day <- format(as.POSIXct(rbdnb$tstime, origin = "1970-01-01", tz = "UTC"), "%d")
+rbdnb$month <- format(as.POSIXct(rbdnb$tstime, origin = "1970-01-01", tz = "UTC"), "%m")
+rbdnb$year <- format(as.POSIXct(rbdnb$tstime, origin = "1970-01-01", tz = "UTC"), "%Y")
 
 # transform to hourly to save space and 
 # also t oconvert wet_pct to wet_duration
