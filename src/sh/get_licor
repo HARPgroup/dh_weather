@@ -1,0 +1,19 @@
+#!/bin/bash
+if [ $# -lt 4 ]; then
+  echo "Use: get_licor date fid hobo_logger_id hobo_uid"
+  exit
+fi
+ 
+thisdate=$1
+fid=$2 # 6915
+logger=$3
+uid=$4 # 7451
+cd /var/www/d.live
+bdate=`date --date="$thisdate" +"%Y-%m-%d"`
+sdate="$bdate 00:00:00"
+edate="$bdate 23:59:59"
+echo "Rscript modules/dh_weather/src/r/get_licor_ts.R $fid dh_feature $logger $uid \"$sdate\" \"$edate\" /tmp/dh_weather_${fid}.txt"
+Rscript modules/dh_weather/src/r/get_licor_ts.R $fid dh_feature $logger $uid "$sdate" "$edate" /tmp/dh_weather_${fid}.txt
+counter=$((counter + 1))
+# now import to drupal
+drush scr modules/dh_weather/src/set_timeseries_weather.php file /tmp/dh_weather_${fid}.txt
